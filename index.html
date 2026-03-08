@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WA Link Generator — Undangan</title>
+  <style>
+    :root {
+      --brand: #456482;
+      --text: #1a1a1a;
+      --muted: #5b6c8a;
+      --border: rgba(0,0,0,0.12);
+      --bg: #f5f5f5;
+      --card: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 28px 16px 42px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    h1 {
+      font-size: 18px;
+      margin: 0 0 6px;
+      color: var(--brand);
+      letter-spacing: 0.2px;
+    }
+
+    p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+      background: #fff;
+    }
+
+    input:focus, textarea:focus { border-color: var(--brand); }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      appearance: none;
+      border: none;
+      background: var(--brand);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 650;
+      cursor: pointer;
+      transition: transform 0.12s ease, filter 0.12s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); filter: brightness(0.96); }
+    .btn.secondary { background: rgba(69, 100, 130, 0.12); color: var(--brand); border: 1px solid rgba(69,100,130,0.35); }
+
+    .out {
+      border-top: 1px dashed var(--border);
+      margin-top: 14px;
+      padding-top: 14px;
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12.5px;
+      word-break: break-word;
+      color: #243043;
+    }
+
+    .hint {
+      font-size: 12.5px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    @media (min-width: 720px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+      .grid .full { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Generator Link WhatsApp (Undangan)</h1>
+      <p>Isi nama tamu → sistem buat tautan undangan <span class="mono">?to=...</span> otomatis → klik “Buka WhatsApp” untuk mengirim pesan undangan yang sudah rapi.</p>
+
+      <div class="grid">
+        <div class="full">
+          <label for="baseUrl">Alamat undangan (base URL)</label>
+          <input id="baseUrl" type="url" placeholder="https://nengrita-yaris.netlify.app/" />
+        </div>
+
+        <div>
+          <label for="toName">Nama tamu (isi lengkap jika perlu)</label>
+          <input id="toName" type="text" placeholder="Agus di Tempat" autocomplete="off" />
+        </div>
+
+        <div class="full">
+          <div class="row">
+            <button id="openWA" class="btn" type="button">Buka WhatsApp</button>
+            <button id="copyLink" class="btn secondary" type="button">Copy Link</button>
+            <button id="copyMessage" class="btn secondary" type="button">Copy Pesan</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="out">
+        <div class="hint">Preview link:</div>
+        <div class="mono" id="previewLink">-</div>
+
+        <div class="hint" style="margin-top: 10px;">Preview pesan WhatsApp:</div>
+        <div class="mono" id="previewMessage">-</div>
+      </div>
+
+      <div class="hint">
+        Tips: kalau base URL kamu sudah ada “/”, tidak masalah. Tool ini akan rapihin URL dan encode spasi otomatis.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const elBaseUrl = document.getElementById('baseUrl');
+    const elToName = document.getElementById('toName');
+    const elPreviewLink = document.getElementById('previewLink');
+    const elPreviewMessage = document.getElementById('previewMessage');
+    const btnOpenWA = document.getElementById('openWA');
+    const btnCopyLink = document.getElementById('copyLink');
+    const btnCopyMessage = document.getElementById('copyMessage');
+
+    function normalizeBaseURL(raw) {
+      const fallback = 'https://nengrita-yaris.netlify.app/';
+      const value = (raw || '').trim() || fallback;
+
+      let url;
+      try {
+        url = new URL(value);
+      } catch {
+        // If user types without protocol
+        try {
+          url = new URL('https://' + value);
+        } catch {
+          url = new URL(fallback);
+        }
+      }
+
+      // Remove query/hash, keep pathname
+      url.search = '';
+      url.hash = '';
+      return url;
+    }
+
+    function buildInvitationURL() {
+      const base = normalizeBaseURL(elBaseUrl.value);
+      const toValue = (elToName.value || '').trim();
+
+      if (toValue) base.searchParams.set('to', toValue);
+      else base.searchParams.delete('to');
+
+      return base.toString();
+    }
+
+    function buildMessage() {
+      const toValue = (elToName.value || '').trim();
+      const link = buildInvitationURL();
+
+      return [
+        "Assalamu'alaikum Wr. Wb",
+        'Bismillahirahmanirrahim.',
+        '',
+        'Yth. ' + toValue,
+        '',
+        'Tanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i, teman sekaligus sahabat, untuk menghadiri acara pernikahan kami :',
+        '',
+        'Ahmad Yaris & Neng Rita Nurdianti',
+        '',
+        'Berikut link undangan kami untuk info lengkap dari acara bisa kunjungi :',
+        link,
+        '',
+        'Merupakan suatu kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan untuk hadir dan memberikan doa restu.',
+        '',
+        'Mohon maaf perihal undangan hanya di bagikan melalui pesan ini. Terima kasih banyak atas perhatiannya.',
+        '',
+        "Wassalamu'alaikum Wr. Wb.",
+        'Terima Kasih.',
+      ].join('\n');
+    }
+
+    function updatePreview() {
+      const link = buildInvitationURL();
+      const message = buildMessage();
+
+      elPreviewLink.textContent = link;
+      elPreviewMessage.textContent = message;
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-999999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try {
+          document.execCommand('copy');
+          return true;
+        } catch {
+          return false;
+        } finally {
+          document.body.removeChild(ta);
+        }
+      }
+    }
+
+    function openWhatsApp() {
+      const toValue = (elToName.value || '').trim();
+      if (!toValue) {
+        alert('Nama tamu masih kosong. Silakan isi dulu.');
+        elToName.focus();
+        return;
+      }
+      const message = buildMessage();
+      const wa = 'https://wa.me/?text=' + encodeURIComponent(message);
+      window.open(wa, '_blank', 'noopener,noreferrer');
+    }
+
+    // Defaults
+    elBaseUrl.value = 'https://nengrita-yaris.netlify.app/';
+
+    updatePreview();
+
+    ['input', 'change'].forEach(evt => {
+      elBaseUrl.addEventListener(evt, updatePreview);
+      elToName.addEventListener(evt, updatePreview);
+    });
+
+    btnOpenWA.addEventListener('click', openWhatsApp);
+
+    btnCopyLink.addEventListener('click', async () => {
+      const ok = await copyText(buildInvitationURL());
+      if (!ok) alert('Gagal copy. Silakan salin manual dari preview link.');
+    });
+
+    btnCopyMessage.addEventListener('click', async () => {
+      const ok = await copyText(buildMessage());
+      if (!ok) alert('Gagal copy. Silakan salin manual dari preview pesan.');
+    });
+
+    // Enter to open WhatsApp when typing name
+    elToName.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') openWhatsApp();
+    });
+  </script>
+</body>
+</html>
