@@ -130,7 +130,7 @@
       <div class="grid">
         <div class="full">
           <label for="baseUrl">Alamat undangan (base URL)</label>
-          <input id="baseUrl" type="url" placeholder="https://nengrita-yaris.netlify.app/" />
+          <input id="baseUrl" type="url" placeholder="https://yaris-nengrita.my.id/" />
         </div>
 
         <div>
@@ -171,7 +171,7 @@
     const btnCopyMessage = document.getElementById('copyMessage');
 
     function normalizeBaseURL(raw) {
-      const fallback = 'https://nengrita-yaris.netlify.app/';
+      const fallback = 'https://yaris-nengrita.my.id/';
       const value = (raw || '').trim() || fallback;
 
       let url;
@@ -180,7 +180,7 @@
       } catch {
         // If user types without protocol
         try {
-          url = new URL('https://' + value);
+          url = new URL('https://yaris-nengrita.my.id/');
         } catch {
           url = new URL(fallback);
         }
@@ -272,7 +272,7 @@
     }
 
     // Defaults
-    elBaseUrl.value = 'https://nengrita-yaris.netlify.app/';
+    elBaseUrl.value = 'https://yaris-nengrita.my.id/';
 
     updatePreview();
 
