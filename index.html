@@ -140,9 +140,11 @@ function buildMessage() {
 }
 
 function copyMessage() {
+  updatePreview();
   const message = buildMessage();
-  navigator.clipboard.writeText(message);
-  alert("Pesan undangan berhasil di copy");
+  navigator.clipboard.writeText(message).then(() => {
+    alert("Pesan undangan berhasil di copy");
+  });
 }
 const baseUrl = document.getElementById("baseUrl");
 const toName = document.getElementById("toName");
