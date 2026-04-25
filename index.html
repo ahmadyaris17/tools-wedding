@@ -119,6 +119,7 @@
   <div class="actions">
     <button class="btn-wa" onclick="openWhatsApp()">Kirim WA</button>
     <button class="btn-copy" onclick="copyLink()">Copy Link</button>
+      <button class="btn-copy" onclick="copyMessage()">Copy Pesan</button>
   </div>
 
   <div class="preview">
@@ -132,6 +133,17 @@
 </div>
 
 <script>
+function buildMessage() {
+  const name = toName.value.trim() || "Tamu";
+  const link = buildLink();
+  return `Assalamu'alaikum Wr. Wb\nBismillahirahmanirrahim.\n\nYth. ${name}\n\nTanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i, teman sekaligus sahabat, untuk menghadiri acara pernikahan kami :\n\nAhmad Yaris & Neng Rita Nurdianti\n\nBerikut link undangan kami untuk info lengkap dari acara bisa kunjungi :\n${link}\n\nMerupakan suatu kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan untuk hadir dan memberikan doa restu.\n\nMohon maaf perihal undangan hanya di bagikan melalui pesan ini. Terima kasih banyak atas perhatiannya.\n\nWassalamu'alaikum Wr. Wb.\nTerima Kasih.`;
+}
+
+function copyMessage() {
+  const message = buildMessage();
+  navigator.clipboard.writeText(message);
+  alert("Pesan undangan berhasil di copy");
+}
 const baseUrl = document.getElementById("baseUrl");
 const toName = document.getElementById("toName");
 const previewLink = document.getElementById("previewLink");
