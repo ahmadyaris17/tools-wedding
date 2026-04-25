@@ -195,7 +195,14 @@ function copyLink() {
   alert("Link berhasil di copy");
 }
 
-toName.addEventListener("input", updatePreview);
+toName.addEventListener("input", () => {
+  updatePreview();
+});
+
+// Agar copy pesan selalu update dengan input terbaru
+toName.addEventListener("input", () => {
+  // Tidak perlu update khusus, karena buildMessage() selalu ambil value terbaru
+});
 updatePreview();
 </script>
 
